@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>IvanQR - Free QR Generator</title>
-  <link rel="icon" href="favicon.png">
+  <link rel="icon" href="favicon.svg">
   <meta name="description" content="Generate free QR codes instantly. 100% free by IvanTools. Download and share your QR easily.">
   <meta name="keywords" content="free qr code generator, qr code online, qr creator, qr for links, ivan qr">
   <link rel="stylesheet" href="style.css" />
@@ -14,13 +14,13 @@
 <body>
   <div class="container">
     <h1>Free QR Code Generator</h1>
-    <p>Type text or URL below and generate your QR instantly.</p>
+    <p>Type text or URL below and generate your QR code</p>
 
-    <input type="text" id="qrText" placeholder="Enter text or URL" />
-    <button onclick="generateQR()">Generate</button>
+    <input type="text" id="qr-input" placeholder="Enter URL or text" />
+    <button id="generate-btn">Generate</button>
 
     <div id="qrcode"></div>
-    <button id="downloadBtn" style="display:none;">Download QR</button>
+    <button id="download-btn">Download QR</button>
 
     <div class="ad-banner">
       <!-- 🔹 Adsterra/AdSense ad code will go here later -->
