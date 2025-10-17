@@ -30,42 +30,58 @@ document.addEventListener("DOMContentLoaded", () => {
 
     downloadBtn.addEventListener("click", () => {
       const qrCanvas = qrDiv.querySelector("canvas");
-
       if (!qrCanvas) {
         alert("Please generate a QR code first!");
         return;
       }
 
-      // --- Create high-resolution export ---
+      // --- Settings ---
+      const scale = 4; // quality multiplier
+      const padding = 100; // white margin around QR
+
+      const size = qrCanvas.width * scale + padding * 2;
+
+      // --- Create export canvas ---
       const exportCanvas = document.createElement("canvas");
-      const size = 1024; // 2x the original for clarity
       exportCanvas.width = size;
       exportCanvas.height = size;
       const ctx = exportCanvas.getContext("2d");
 
-      // White background
+      // White background (including margin)
       ctx.fillStyle = "#ffffff";
       ctx.fillRect(0, 0, size, size);
 
-      // Draw scaled QR exactly
-      ctx.imageSmoothingEnabled = false; // crucial: prevents blur
-      ctx.drawImage(qrCanvas, 0, 0, size, size);
+      // Disable smoothing to keep sharp edges
+      ctx.imageSmoothingEnabled = false;
 
-      // Filename
+      // Draw QR centered with white border
+      ctx.drawImage(
+        qrCanvas,
+        padding,
+        padding,
+        qrCanvas.width * scale,
+        qrCanvas.height * scale
+      );
+
+      // Generate filename with timestamp
       const now = new Date();
       const timestamp = now.toISOString().replace(/[:T]/g, '-').split('.')[0];
       const filename = `ivanqr-${timestamp}.png`;
 
-      // Save clean PNG
-      exportCanvas.toBlob((blob) => {
-        const link = document.createElement("a");
-        link.href = URL.createObjectURL(blob);
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(link.href);
-      }, "image/png");
+      // Convert and download
+      exportCanvas.toBlob(
+        (blob) => {
+          const link = document.createElement("a");
+          link.href = URL.createObjectURL(blob);
+          link.download = filename;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(link.href);
+        },
+        "image/png",
+        1.0
+      );
     });
   }
 });
