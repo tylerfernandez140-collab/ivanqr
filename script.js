@@ -27,28 +27,33 @@ function generateQR() {
   }, 300);
 }
 
-function downloadQR(qrSrc) {
-  const qrImage = document.querySelector('#qrcode img');
-  if (qrImage) {
-    fetch(qrImage.src)
-      .then(res => res.blob())
-      .then(blob => {
-        // 🕒 Create a readable timestamp (YYYY-MM-DD_HH-MM-SS)
-        const now = new Date();
-        const formattedDate = now.toISOString().replace('T', '_').split('.')[0].replace(/:/g, '-');
+function downloadQR() {
+  const qrCanvas = document.querySelector('#qrcode canvas');
+  if (!qrCanvas) return alert("Please generate a QR code first!");
 
-        // 🏷️ Automatic name + your brand
-        const filename = `qrcode-ivanqr-${formattedDate}.png`;
+  // Create a temporary high-res canvas
+  const tempCanvas = document.createElement('canvas');
+  const scale = 4; // makes it 4x sharper
+  tempCanvas.width = qrCanvas.width * scale;
+  tempCanvas.height = qrCanvas.height * scale;
 
-        // 💾 Download
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        window.URL.revokeObjectURL(url);
-      });
-  }
+  const ctx = tempCanvas.getContext('2d');
+
+  // Fill white background for better contrast
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+
+  // Draw scaled QR
+  ctx.drawImage(qrCanvas, 0, 0, tempCanvas.width, tempCanvas.height);
+
+  // Automatic filename
+  const now = new Date();
+  const timestamp = now.toISOString().replace(/[:T]/g, '-').split('.')[0];
+  const filename = `qrcode-ivanqr-${timestamp}.png`;
+
+  // Create download link
+  const link = document.createElement('a');
+  link.href = tempCanvas.toDataURL('image/png', 1.0); // 1.0 = full quality
+  link.download = filename;
+  link.click();
 }
