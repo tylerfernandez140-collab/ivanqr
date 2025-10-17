@@ -1,58 +1,61 @@
-let qrcode;
+const qrDiv = document.getElementById("qrcode");
+const input = document.getElementById("qrText"); // Changed from qr-input to qrText
+const generateBtn = document.getElementById("generateBtn"); // Changed from generate-btn to generateBtn
+const downloadBtn = document.getElementById("downloadBtn"); // Changed from download-btn to downloadBtn
 
-function generateQR() {
-  const qrText = document.getElementById("qrText").value;
-  const qrContainer = document.getElementById("qrcode");
-  const downloadBtn = document.getElementById("downloadBtn");
+let qrCode; // hold the QRCode instance
 
-  qrContainer.innerHTML = "";
-
-  if (qrText.trim() === "") {
-    alert("Please enter text or URL first!");
+generateBtn.addEventListener("click", () => {
+  const text = input.value.trim();
+  if (!text) {
+    alert("Please enter text or URL!");
     return;
   }
 
-  qrcode = new QRCode(qrContainer, {
-    text: qrText,
-    width: 200,
-    height: 200
+  // Clear previous QR
+  qrDiv.innerHTML = "";
+
+  // Force fixed, high-res QR
+  qrCode = new QRCode(qrDiv, {
+    text: text,
+    width: 512, // high resolution for clear edges
+    height: 512,
+    colorDark: "#000000",
+    colorLight: "#ffffff",
+    correctLevel: QRCode.CorrectLevel.H
   });
+});
 
-  setTimeout(() => {
-    const qrImage = qrContainer.querySelector("img");
-    if (qrImage) {
-      downloadBtn.style.display = "inline-block";
-      downloadBtn.onclick = () => downloadQR(qrImage.src);
-    }
-  }, 300);
-}
-
-function downloadQR() {
-  const qrCanvas = document.querySelector("#qrcode canvas");
+downloadBtn.addEventListener("click", () => {
+  const qrCanvas = qrDiv.querySelector("canvas");
 
   if (!qrCanvas) {
     alert("Please generate a QR code first!");
     return;
   }
 
-  // 🕒 Filename with timestamp
+  // --- Create high-resolution export ---
+  const exportCanvas = document.createElement("canvas");
+  const size = 1024; // 2x the original for clarity
+  exportCanvas.width = size;
+  exportCanvas.height = size;
+  const ctx = exportCanvas.getContext("2d");
+
+  // White background
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, size, size);
+
+  // Draw scaled QR exactly
+  ctx.imageSmoothingEnabled = false; // crucial: prevents blur
+  ctx.drawImage(qrCanvas, 0, 0, size, size);
+
+  // Filename
   const now = new Date();
   const timestamp = now.toISOString().replace(/[:T]/g, '-').split('.')[0];
   const filename = `ivanqr-${timestamp}.png`;
 
-  // 🧾 Create a white background (fixes transparency issues)
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
-  canvas.width = qrCanvas.width;
-  canvas.height = qrCanvas.height;
-
-  // White background to ensure scannability
-  ctx.fillStyle = "#ffffff";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.drawImage(qrCanvas, 0, 0);
-
-  // 💾 Save as PNG using Blob (safe for Android/iOS)
-  canvas.toBlob((blob) => {
+  // Save clean PNG
+  exportCanvas.toBlob((blob) => {
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = filename;
@@ -61,4 +64,4 @@ function downloadQR() {
     document.body.removeChild(link);
     URL.revokeObjectURL(link.href);
   }, "image/png");
-}
+});
