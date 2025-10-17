@@ -28,32 +28,58 @@ function generateQR() {
 }
 
 function downloadQR() {
-  const qrCanvas = document.querySelector('#qrcode canvas');
-  if (!qrCanvas) return alert("Please generate a QR code first!");
+  const qrDiv = document.getElementById("qrcode");
+  if (!qrDiv.querySelector("canvas")) {
+    alert("Please generate a QR code first!");
+    return;
+  }
 
-  // Create a temporary high-res canvas
-  const tempCanvas = document.createElement('canvas');
-  const scale = 4; // makes it 4x sharper
-  tempCanvas.width = qrCanvas.width * scale;
-  tempCanvas.height = qrCanvas.height * scale;
+  // Rebuild a clean QR for saving
+  const qrCanvas = document.createElement("canvas");
+  const size = 500; // high-quality output
+  qrCanvas.width = size;
+  qrCanvas.height = size;
+  const ctx = qrCanvas.getContext("2d");
 
-  const ctx = tempCanvas.getContext('2d');
+  // Fill with white background
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, size, size);
 
-  // Fill white background for better contrast
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+  // Get text from input
+  const text = document.getElementById("qrText").value.trim();
+  if (!text) {
+    alert("Please enter text or URL to generate QR code first!");
+    return;
+  }
 
-  // Draw scaled QR
-  ctx.drawImage(qrCanvas, 0, 0, tempCanvas.width, tempCanvas.height);
+  // Use qrcode.js to rebuild high-res QR
+  const tempDiv = document.createElement("div");
+  new QRCode(tempDiv, {
+    text: text,
+    width: size,
+    height: size,
+    colorDark: "#000000",
+    colorLight: "#ffffff",
+    correctLevel: QRCode.CorrectLevel.H
+  });
 
-  // Automatic filename
+  // Copy QR from temp canvas to new one
+  const tempCanvas = tempDiv.querySelector("canvas");
+  ctx.drawImage(tempCanvas, 0, 0, size, size);
+
+  // Create automatic filename
   const now = new Date();
   const timestamp = now.toISOString().replace(/[:T]/g, '-').split('.')[0];
-  const filename = `qrcode-ivanqr-${timestamp}.png`;
+  const filename = `ivanqr-${timestamp}.png`;
 
-  // Create download link
-  const link = document.createElement('a');
-  link.href = tempCanvas.toDataURL('image/png', 1.0); // 1.0 = full quality
-  link.download = filename;
-  link.click();
+  // Use Blob method for safe downloading (works on Android)
+  qrCanvas.toBlob((blob) => {
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(link.href);
+  }, "image/png", 1.0);
 }
