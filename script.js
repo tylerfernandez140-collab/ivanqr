@@ -28,8 +28,27 @@ function generateQR() {
 }
 
 function downloadQR(qrSrc) {
-  const a = document.createElement("a");
-  a.href = qrSrc;
-  a.download = "ivanqr.png";
-  a.click();
+  const qrImage = document.querySelector('#qrcode img');
+  if (qrImage) {
+    fetch(qrImage.src)
+      .then(res => res.blob())
+      .then(blob => {
+        // 🕒 Create a readable timestamp (YYYY-MM-DD_HH-MM-SS)
+        const now = new Date();
+        const formattedDate = now.toISOString().replace('T', '_').split('.')[0].replace(/:/g, '-');
+
+        // 🏷️ Automatic name + your brand
+        const filename = `qrcode-ivanqr-${formattedDate}.png`;
+
+        // 💾 Download
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      });
+  }
 }
